@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.0.0
+    Version: 1.1.0
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -10,7 +10,7 @@
 
 function Clearbase_Juicebox_Load() {
     class Clearbase_Juicebox extends Clearbase_View_Controller {
-        
+
         public function ID() {
             return 'cb-juicebox';
         }
@@ -42,7 +42,7 @@ function Clearbase_Juicebox_Load() {
             $this->register_script('cb-juicebox', plugins_url('/jbcore/juicebox.js', __FILE__), array('jquery'));
             $this->register_style('cb-juicebox-folders', plugins_url('/folders.css', __FILE__));
         }
-        
+
         public function Render($data = null) {
             $this->enqueue_registered();
             $folder = clearbase_load_folder($data);
@@ -52,11 +52,28 @@ function Clearbase_Juicebox_Load() {
             }
             $multi = clearbase_get_value('postmeta.clearbase_juicebox.multifolders', 'yes', $folder);
             $query = clearbase_query_subfolders($folder);
-			$multi_one_child = 'yes' == $multi && 1 == $query->found_posts;
+            $multi_one_child = 'yes' == $multi && 1 == $query->found_posts;
             if (0 == $folder->post_parent && !$multi_one_child) {
-                
-                //$settings = clearbase_get_value('postmeta.clearbase_juicebox', null, $folder);
+                $attachment = null;
+                $attachment_ids = array();
+                while ($query->have_posts()) : $query->the_post();
+                    if ($attachment = clearbase_get_first_attachment('image', get_the_ID()))
+                        $attachment_ids[] = $attachment->ID;
+                endwhile;
+                /* Restore original Post Data */
+                wp_reset_postdata();
 
+                //add_filter( 'attachment_link', array(&$this, 'link_to_parent'), 20, 2);
+                $args = wp_parse_args( apply_filters('juicebox_folder_layout_args', array(), $folder), array(
+                    'ids'       => $attachment_ids,
+                    'columns'   => 3,
+                    'class'     => "juicebox juicebox-folder-{$folder->ID}\"",
+                    'size'      => 'medium',
+                    'link'      => 'parent'
+                ));
+                echo clearbase_gallery_shortcode($args);
+                //remove_filter( 'attachment_link', array(&$this, 'link_to_parent'), 20, 2);
+                /*
                 $expanded = wp_is_mobile() ? '#expanded' : '';
                 ?>
                 <ul class="juicebox-folders">
@@ -68,10 +85,10 @@ function Clearbase_Juicebox_Load() {
                                 <a href="<?php echo $permalink ?>">
                                     <?php $image_src = clearbase_default_folder_image_src( get_the_ID(), 'medium' ); ?>
                                     <div class="centered">
-                                        <img src="<?php echo $image_src[0] ?>"> 
-                                    </div>                                                               
+                                        <img src="<?php echo $image_src[0] ?>">
+                                    </div>
                                     <h3>
-                                        <?php the_title(); ?>                                    
+                                        <?php the_title(); ?>
                                     </h3>
                                 </a>
                             </div>
@@ -83,10 +100,11 @@ function Clearbase_Juicebox_Load() {
                 <?php endwhile; ?>
                 </ul><!-- end ul.slides -->
                 <?php
+                */
             } else {
                 if ($multi_one_child)
                     $folder = clearbase_load_folder($query->posts[0]);
-                
+
                 $config_url = plugins_url('config.php?id='.$folder->ID , __FILE__);
                 $settings = clearbase_get_value('postmeta.clearbase_juicebox', null, $folder);
 
@@ -115,38 +133,48 @@ function Clearbase_Juicebox_Load() {
                 });
                 </script>";
             }
-                
+
+        }
+
+        public function link_to_parent($url, $post_id) {
+            $expanded = wp_is_mobile() ? '#expanded' : '';
+            $post = get_post($post_id);
+            $parent = get_post($post->post_parent);
+            if ($parent)
+                return get_permalink($parent->ID) . $expanded;
+            else
+                return $url;
         }
 
         public function EditorFields() {
-            return array( 
+            return array(
                 array(
                     'id'        => 'clearbase_juicebox',
                     'type'      => 'sectionstart'
                 ),
                 array(
-                    'id'        => 'postmeta.clearbase_juicebox.multifolders', 
+                    'id'        => 'postmeta.clearbase_juicebox.multifolders',
                     'title'     => __( "Multiple Folders", 'clearbase_juicebox' ),
                     'desc'      => __( "Allows photos to be stored in multiple folders", 'clearbase_juicebox' ),
                     'type'      => 'checkbox',
                     'default'   => 'yes'
                 ),
                 array(
-                    'id'        => 'postmeta.clearbase_juicebox.width', 
+                    'id'        => 'postmeta.clearbase_juicebox.width',
                     'title'     => __( "Width", 'clearbase_juicebox' ),
                     'desc'      => __( "Specifies the width of the juicebox gallery", 'clearbase_juicebox' ),
                     'type'      => 'text',
                     'default'   => '100%'
                 ),
                 array(
-                    'id'        => 'postmeta.clearbase_juicebox.height', 
+                    'id'        => 'postmeta.clearbase_juicebox.height',
                     'title'     => __( "Height", 'clearbase_juicebox' ),
                     'desc'      => __( "Specifies the height of the juicebox gallery", 'clearbase_juicebox' ),
                     'type'      => 'text',
                     'default'   => '100%'
                 ),
                 array(
-                    'id'        => 'postmeta.clearbase_juicebox.background_color', 
+                    'id'        => 'postmeta.clearbase_juicebox.background_color',
                     'title'     => __( "Background Color", 'clearbase_juicebox' ),
                     'desc'      => __( "Specifies the background color of the juicebox gallery", 'clearbase_juicebox' ),
                     'type'      => 'text'
@@ -156,7 +184,7 @@ function Clearbase_Juicebox_Load() {
                     'type'      => 'sectionend'
                 )
             );
-        }   
+        }
     }
 
     new Clearbase_Juicebox();
