@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.1.3
+    Version: 1.2.0
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -64,7 +64,6 @@ function Clearbase_Juicebox_Load() {
                 /* Restore original Post Data */
                 wp_reset_postdata();
 
-                //add_filter( 'attachment_link', array(&$this, 'link_to_parent'), 20, 2);
                 $args = wp_parse_args( apply_filters('juicebox_folder_layout_args', array(), $folder), array(
                     'ids'       => $attachment_ids,
                     'columns'   => 3,
@@ -72,7 +71,11 @@ function Clearbase_Juicebox_Load() {
                     'size'      => 'medium',
                     'link'      => 'parent'
                 ));
+
+                add_filter( 'clearbase_gallery_js_columns', array(&$this, 'default_js_columns') );
                 echo clearbase_gallery_shortcode($args);
+                remove_filter( 'clearbase_gallery_js_columns', array(&$this, 'default_js_columns') );
+
             } else {
                 if ($multi_one_child)
                     $folder = clearbase_load_folder($query->posts[0]);
@@ -108,14 +111,11 @@ function Clearbase_Juicebox_Load() {
 
         }
 
-        public function link_to_parent($url, $post_id) {
-            $expanded = wp_is_mobile() ? '#expanded' : '';
-            $post = get_post($post_id);
-            $parent = get_post($post->post_parent);
-            if ($parent)
-                return get_permalink($parent->ID) . $expanded;
-            else
-                return $url;
+        public function default_js_columns() {
+            return array(
+                800 => 2,
+                400 => 1
+            );
         }
 
         public function EditorFields() {
