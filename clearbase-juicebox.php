@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.1.0
+    Version: 1.1.3
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -50,9 +50,10 @@ function Clearbase_Juicebox_Load() {
                 echo '<p class="error">' . __('Juicebox: You must specify a valid clearbase folder', 'cb-juicebox') . '</p>';
                 return false;
             }
-            $multi = clearbase_get_value('postmeta.clearbase_juicebox.multifolders', 'yes', $folder);
+            $settings = $this->FolderSettings($folder);
+            $multi = clearbase_get_value('allow_folders', true, $settings);
             $query = clearbase_query_subfolders($folder);
-            $multi_one_child = 'yes' == $multi && 1 == $query->found_posts;
+            $multi_one_child = ($multi && 1 == $query->found_posts);
             if (0 == $folder->post_parent && !$multi_one_child) {
                 $attachment = null;
                 $attachment_ids = array();
@@ -72,35 +73,6 @@ function Clearbase_Juicebox_Load() {
                     'link'      => 'parent'
                 ));
                 echo clearbase_gallery_shortcode($args);
-                //remove_filter( 'attachment_link', array(&$this, 'link_to_parent'), 20, 2);
-                /*
-                $expanded = wp_is_mobile() ? '#expanded' : '';
-                ?>
-                <ul class="juicebox-folders">
-                <?php while ($query->have_posts()) : $query->the_post(); ?>
-                    <?php $permalink = get_the_permalink() . $expanded; ?>
-                    <li>
-                        <div class="juicebox-pile">
-                            <div class="juicebox-pile-inner">
-                                <a href="<?php echo $permalink ?>">
-                                    <?php $image_src = clearbase_default_folder_image_src( get_the_ID(), 'medium' ); ?>
-                                    <div class="centered">
-                                        <img src="<?php echo $image_src[0] ?>">
-                                    </div>
-                                    <h3>
-                                        <?php the_title(); ?>
-                                    </h3>
-                                </a>
-                            </div>
-                        </div>
-                    </li>
-                    </li>
-                    </li>
-
-                <?php endwhile; ?>
-                </ul><!-- end ul.slides -->
-                <?php
-                */
             } else {
                 if ($multi_one_child)
                     $folder = clearbase_load_folder($query->posts[0]);
