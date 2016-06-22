@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.3.1
+    Version: 1.3.2
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -40,7 +40,7 @@ function Clearbase_Juicebox_Load() {
 
         public function Enqueue() {
             $this->register_script('cb-juicebox', plugins_url('/jbcore/juicebox.js', __FILE__), array('jquery'));
-            $this->register_style('cb-juicebox-folders', plugins_url('/folders.min.css', __FILE__), '1.3.1');
+            $this->register_style('cb-juicebox-folders', plugins_url('/folders.min.css', __FILE__), '1.3.2');
         }
 
         public function Render($data = null) {
@@ -52,7 +52,7 @@ function Clearbase_Juicebox_Load() {
             }
             $settings = $this->FolderSettings($folder);
             $multi = clearbase_get_value('allow_folders', true, $settings);
-            $query = clearbase_query_subfolders($folder, 2);
+            $query = clearbase_query_subfolders($folder, 10);
             $multi_one_child = ($multi && 1 == $query->found_posts);
             if (0 == $folder->post_parent && !$multi_one_child) {
                 $attachment = null;
