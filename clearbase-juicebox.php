@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.3.0
+    Version: 1.3.1
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -40,7 +40,7 @@ function Clearbase_Juicebox_Load() {
 
         public function Enqueue() {
             $this->register_script('cb-juicebox', plugins_url('/jbcore/juicebox.js', __FILE__), array('jquery'));
-            $this->register_style('cb-juicebox-folders', plugins_url('/folders.min.css', __FILE__), '1.3.0');
+            $this->register_style('cb-juicebox-folders', plugins_url('/folders.min.css', __FILE__), '1.3.1');
         }
 
         public function Render($data = null) {
