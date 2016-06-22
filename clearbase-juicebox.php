@@ -2,7 +2,7 @@
 /*
     Plugin Name: Juicebox Gallery
     Description: A Clearbase controller for Juicebox galleries
-    Version: 1.2.0
+    Version: 1.3.0
     Author: Richard Blythe
     Author URI: http://unity3software.com/richardblythe
     GitHub Plugin URI: https://github.com/richardblythe/clearbase-juicebox
@@ -40,7 +40,7 @@ function Clearbase_Juicebox_Load() {
 
         public function Enqueue() {
             $this->register_script('cb-juicebox', plugins_url('/jbcore/juicebox.js', __FILE__), array('jquery'));
-            $this->register_style('cb-juicebox-folders', plugins_url('/folders.css', __FILE__));
+            $this->register_style('cb-juicebox-folders', plugins_url('/folders.min.css', __FILE__), '1.3.0');
         }
 
         public function Render($data = null) {
@@ -52,7 +52,7 @@ function Clearbase_Juicebox_Load() {
             }
             $settings = $this->FolderSettings($folder);
             $multi = clearbase_get_value('allow_folders', true, $settings);
-            $query = clearbase_query_subfolders($folder);
+            $query = clearbase_query_subfolders($folder, 2);
             $multi_one_child = ($multi && 1 == $query->found_posts);
             if (0 == $folder->post_parent && !$multi_one_child) {
                 $attachment = null;
@@ -76,6 +76,17 @@ function Clearbase_Juicebox_Load() {
                 echo clearbase_gallery_shortcode($args);
                 remove_filter( 'clearbase_gallery_js_columns', array(&$this, 'default_js_columns') );
 
+                if ($query->max_num_pages > 1) { // check if the max number of pages is greater than 1  ?>
+                    <nav class="pagination-links <?php echo "juicebox juicebox-folder-{$folder->ID}"; ?>">
+                        <div class="prev-folders-link">
+                            <?php echo get_previous_posts_link( __('Previous Folders', 'clearbase_juicebox') ); // display newer posts link ?>
+                        </div>
+                        <div class="next-folders-link">
+                            <?php echo get_next_posts_link( __('Next Folders', 'clearbase_juicebox'), $query->max_num_pages ); // display older posts link ?>
+                        </div>
+                    </nav>
+                    <?php
+                }
             } else {
                 if ($multi_one_child)
                     $folder = clearbase_load_folder($query->posts[0]);
@@ -88,7 +99,6 @@ function Clearbase_Juicebox_Load() {
                 <script>
                 jQuery( document ).ready(function() {
                     var jb = new juicebox({
-                        baseUrl : '{$base_url}',
                         configURL:  '{$config_url}',
                         containerId : 'juicebox-{$folder->ID}',
                         galleryWidth: '" . esc_js( clearbase_get_value('width', '100%', $settings) ) . "',

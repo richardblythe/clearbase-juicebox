@@ -8,12 +8,10 @@
       <library name="PHP">
         <CLASSES>
           <root url="file://$MODULE_DIR$/../../../wp-admin" />
-          <root url="file://$MODULE_DIR$/../clearbase" />
           <root url="file://$MODULE_DIR$/../../../wp-includes" />
         </CLASSES>
         <SOURCES>
           <root url="file://$MODULE_DIR$/../../../wp-admin" />
-          <root url="file://$MODULE_DIR$/../clearbase" />
           <root url="file://$MODULE_DIR$/../../../wp-includes" />
         </SOURCES>
       </library>
